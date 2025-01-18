@@ -2,7 +2,7 @@
 
 namespace DependencyInjection.Runtime.InjectionBase
 {
-    internal sealed class ServiceCollection : IServiceCollection
+    public sealed class ServiceCollection : IServiceCollection
     {
         public void RegisterSingleton<T>(T instance) where T : class =>
             DIContainer.RegisterSingleton(instance);

@@ -7,7 +7,7 @@ namespace DependencyInjection.Editor
     /// Base class for Unity editor windows that support dependency injection.
     /// Automatically injects dependencies when the window is enabled.
     /// </summary>
-    internal abstract class InjectableEditorWindow : EditorWindow
+    public abstract class InjectableEditorWindow : EditorWindow
     {
         protected virtual void OnEnable()
         {

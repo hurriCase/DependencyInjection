@@ -9,7 +9,7 @@ namespace DependencyInjection.Runtime.InjectionBase
     /// <summary>
     /// Provides dependency injection functionality for objects with injectable fields.
     /// </summary>
-    internal static class DependencyInjector
+    public static class DependencyInjector
     {
         private static readonly ConcurrentDictionary<Type, FieldInfo[]> _fieldCache = new();
 
@@ -17,7 +17,7 @@ namespace DependencyInjection.Runtime.InjectionBase
         /// Injects dependencies into the target object's injectable fields.
         /// </summary>
         /// <param name="target">The target object to inject dependencies into.</param>
-        internal static void InjectDependencies(object target)
+        public static void InjectDependencies(object target)
         {
             if (target == null) return;
 

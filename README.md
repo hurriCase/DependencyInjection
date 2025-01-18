@@ -38,7 +38,7 @@ The base classes handle injection timing automatically. Choose the right one bas
 ### Injectable
 For regular C# classes. Injection happens in constructor:
 ```csharp
-internal class DataManager : Injectable 
+public class DataManager : Injectable 
 {
     [Inject] private IDataService _dataService; // Injected when constructed
     
@@ -51,7 +51,7 @@ internal class DataManager : Injectable
 ### InjectableBehaviour
 For MonoBehaviours. Injection happens in Awake before any other initialization:
 ```csharp
-internal class GameManager : InjectableBehaviour
+public class GameManager : InjectableBehaviour
 {
     [Inject] private IDataService _dataService; // Injected in Awake
     
@@ -66,7 +66,7 @@ internal class GameManager : InjectableBehaviour
 ### InjectableEditor
 For custom Unity inspectors. Injection happens in OnEnable:
 ```csharp
-internal class GameManagerEditor : InjectableEditor
+public class GameManagerEditor : InjectableEditor
 {
     [Inject] private IEditorDataService _editorService; // Injected in OnEnable
     
@@ -81,7 +81,7 @@ internal class GameManagerEditor : InjectableEditor
 ### InjectableEditorWindow
 For editor windows. Injection happens in OnEnable:
 ```csharp
-internal class DataWindow : InjectableEditorWindow 
+public class DataWindow : InjectableEditorWindow 
 {
     [Inject] private IEditorDataService _service; // Injected in OnEnable
     
@@ -97,7 +97,7 @@ internal class DataWindow : InjectableEditorWindow
 ServiceRegisterBase helps organize service registration. Split between singletons and regular services for clarity:
 
 ```csharp
-internal class GameServices : ServiceRegisterBase
+public class GameServices : ServiceRegisterBase
 {
     // Regular services - new instance each time
     protected override void ConfigureServices(IServiceCollection services)
@@ -127,7 +127,7 @@ internal class GameServices : ServiceRegisterBase
 For classes that can't inherit from base classes but still need injection. You control when injection happens:
 
 ```csharp
-internal class SpecialCase : SomeOtherBaseClass, IInjectable
+public class SpecialCase : SomeOtherBaseClass, IInjectable
 {
     [Inject] private IService _service;
 

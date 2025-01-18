@@ -5,7 +5,7 @@ namespace DependencyInjection.Runtime.InjectionBase
     /// <summary>
     /// Interface for registering services in the dependency injection container.
     /// </summary>
-    internal interface IServiceCollection
+    public interface IServiceCollection
     {
         /// <summary>
         /// Registers a singleton instance of a service.

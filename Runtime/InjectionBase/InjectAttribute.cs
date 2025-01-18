@@ -6,5 +6,5 @@ namespace DependencyInjection.Runtime.InjectionBase
     /// Attribute that marks a field for dependency injection.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
-    internal sealed class InjectAttribute : Attribute { }
+    public sealed class InjectAttribute : Attribute { }
 }

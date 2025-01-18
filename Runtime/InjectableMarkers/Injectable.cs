@@ -6,7 +6,7 @@ namespace DependencyInjection.Runtime.InjectableMarkers
     /// Base class for objects that require dependency injection.
     /// Automatically injects dependencies in constructor.
     /// </summary>
-    internal abstract class Injectable
+    public abstract class Injectable
     {
         protected Injectable() => DependencyInjector.InjectDependencies(this);
     }

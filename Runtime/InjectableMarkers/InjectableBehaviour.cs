@@ -7,7 +7,7 @@ namespace DependencyInjection.Runtime.InjectableMarkers
     /// Base MonoBehaviour class that supports dependency injection.
     /// Automatically injects dependencies in Awake.
     /// </summary>
-    internal abstract class InjectableBehaviour : MonoBehaviour
+    public abstract class InjectableBehaviour : MonoBehaviour
     {
         protected virtual void Awake()
         {

@@ -4,7 +4,7 @@
     /// Base class for registering services with the dependency injection container.
     /// Provides hooks for configuring both regular and singleton services.
     /// </summary>
-    internal abstract class ServiceRegisterBase
+    public abstract class ServiceRegisterBase
     {
         /// <summary>
         /// Configures regular (non-singleton) services.
@@ -23,7 +23,7 @@
         /// <summary>
         /// Registers all regular (non-singleton) services with the container.
         /// </summary>
-        internal void RegisterServices()
+        public void RegisterServices()
         {
             var services = new ServiceCollection();
             ConfigureServices(services);
@@ -32,7 +32,7 @@
         /// <summary>
         /// Registers all singleton instances with the container.
         /// </summary>
-        internal void RegisterSingletonInstance()
+        public void RegisterSingletonInstance()
         {
             var services = new ServiceCollection();
             ConfigureSingletonServices(services);
