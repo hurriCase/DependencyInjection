@@ -1,11 +1,11 @@
 # Unity Custom DI Package
 
-A dependency injection system for Unity projects. Uses attribute-based field injection to reduce boilerplate code and make dependencies explicit.
+A dependency injection system for Unity projects that provides attribute-based field injection to reduce boilerplate code and make dependencies explicit.
 
 ## Core Components
 
 ### DependencyInjector
-Performs the actual injection of dependencies into fields marked with [Inject]. Uses reflection to find injectable fields and caches them for performance. You usually won't call this directly since the base classes handle injection timing.
+Handles the injection of dependencies into fields marked with [Inject]. Uses reflection with caching for performance. Base classes manage injection timing automatically.
 
 ```csharp
 // Manual injection if needed
@@ -13,140 +13,154 @@ DependencyInjector.InjectDependencies(target);
 ```
 
 ### DIContainer
-Central registry of all services. Handles two types of registrations:
-- Singletons: Same instance used everywhere
-- Factory registrations: New instance created each time
+Manages service registration and resolution with support for singleton and transient lifetimes:
 
 ```csharp
-// Register a singleton when you want the same instance everywhere
-DIContainer.RegisterSingleton<IGameSettings>(gameSettings);
+// Register type implementations
+DIContainer.RegisterSingleton<IService, ServiceImpl>();
+DIContainer.RegisterTransient<IService, ServiceImpl>();
 
-// Register a factory when each class should get its own instance
-DIContainer.Register<IDataService>(() => new DataService());
+// Register with factory methods
+DIContainer.RegisterSingleton<IService>(() => new ServiceImpl());
+DIContainer.RegisterTransient<IService>(() => new ServiceImpl());
 
-// Get an instance (will use factory if registered that way)
-var service = DIContainer.Resolve<T>();
+// Register existing instances
+DIContainer.RegisterSingleton<IService>(existingInstance);
 
-// Clear registrations (useful when changing scenes)
-DIContainer.Clear();  // Clear everything
-DIContainer.ClearSingletonDependency<T>();  // Clear one type
+// Resolve services
+var service = DIContainer.Resolve<IService>();
+
+// Container management
+DIContainer.Clear();  // Clear all registrations
+DIContainer.ClearSingletonDependency<IService>();  // Clear specific registration
 ```
 
 ## Base Classes
-The base classes handle injection timing automatically. Choose the right one based on what you're making:
 
 ### Injectable
-For regular C# classes. Injection happens in constructor:
+Base class for regular C# classes, performs injection in constructor:
 ```csharp
 public class DataManager : Injectable 
 {
-    [Inject] private IDataService _dataService; // Injected when constructed
-    
-    public void SaveData() {
-        _dataService.Save();
-    }
+    [Inject] private IDataService _dataService; 
 }
 ```
 
 ### InjectableBehaviour
-For MonoBehaviours. Injection happens in Awake before any other initialization:
+Base class for MonoBehaviours, performs injection in Awake:
 ```csharp
 public class GameManager : InjectableBehaviour
 {
-    [Inject] private IDataService _dataService; // Injected in Awake
+    [Inject] private IDataService _dataService;
     
     protected override void Awake()
     {
-        base.Awake(); // Must call base.Awake() first for injection
-        // Your Awake code here
+        base.Awake(); // Required for injection
+        // Your Awake code
     }
 }
 ```
 
 ### InjectableEditor
-For custom Unity inspectors. Injection happens in OnEnable:
+Base class for Unity custom inspectors:
 ```csharp
 public class GameManagerEditor : InjectableEditor
 {
-    [Inject] private IEditorDataService _editorService; // Injected in OnEnable
+    [Inject] private IEditorService _editorService;
     
     protected override void OnEnable()
     {
-        base.OnEnable(); // Must call base.OnEnable() first
-        // Your OnEnable code here
+        base.OnEnable(); // Required for injection
+        // Your OnEnable code
     }
 }
 ```
 
 ### InjectableEditorWindow
-For editor windows. Injection happens in OnEnable:
+Base class for editor windows:
 ```csharp
 public class DataWindow : InjectableEditorWindow 
 {
-    [Inject] private IEditorDataService _service; // Injected in OnEnable
+    [Inject] private IEditorService _editorService;
     
     protected override void OnEnable()
     {
-        base.OnEnable(); // Must call base.OnEnable() first
-        // Your OnEnable code here
+        base.OnEnable(); // Required for injection
+        // Your OnEnable code
     }
 }
 ```
 
 ## Service Registration
-ServiceRegisterBase helps organize service registration. Split between singletons and regular services for clarity:
+Use ServiceRegisterBase to organize registrations with separate methods for static (type-based) and runtime (instance-based) services:
 
 ```csharp
-public class GameServices : ServiceRegisterBase
+public class GameServiceRegister : ServiceRegisterBase
 {
-    // Regular services - new instance each time
-    protected override void ConfigureServices(IServiceCollection services)
+    // Type-based registrations that work in both editor and play mode
+    protected override void ConfigureStaticServices()
     {
-        // Each class gets its own DataService
-        services.Register<IDataService>(() => new DataService());
-        
-        // Could have configuration:
-        services.Register<INetworkService>(() => {
-            var service = new NetworkService();
-            service.Initialize(settings);
-            return service;
-        });
+        // These work everywhere since they don't need existing instances
+        DIContainer.RegisterTransient<IDataService, DataService>();
+        DIContainer.RegisterSingleton<IGameState, GameState>();
+        DIContainer.RegisterSingleton<IGameService>(() => new GameService());
     }
 
-    // Singletons - same instance everywhere
-    protected override void ConfigureSingletonServices(IServiceCollection services)
+    // Instance-based registrations that require existing objects
+    protected override void ConfigureRuntimeServices()
     {
-        // Everyone shares the same GameState
-        services.RegisterSingleton<IGameState>(GameState.Instance);
-        services.RegisterSingleton<IGameSettings>(GameSettings.Instance);
+        // These only work when the instances exist (play mode)
+        DIContainer.RegisterSingleton<IGameManager>(existingGameManager);
+        DIContainer.RegisterSingleton<IUISystem>(uiSystem);
     }
 }
 ```
 
 ## IInjectable Interface
-For classes that can't inherit from base classes but still need injection. You control when injection happens:
+For classes that can't inherit from the base classes:
 
 ```csharp
 public class SpecialCase : SomeOtherBaseClass, IInjectable
 {
     [Inject] private IService _service;
 
-    void InjectDependencies()
+    public void InjectDependencies()
     {
         DependencyInjector.InjectDependencies(this);
-    }
-    
-    void Initialize()
-    {
-        InjectDependencies(); // You decide when to inject
     }
 }
 ```
 
+## Best Practices
+
+1. Service Registration
+    - Use `ConfigureStaticServices()` for type-based registrations that work everywhere
+    - Use `ConfigureRuntimeServices()` for instance-based registrations that need existing objects
+    - Register services before any injection occurs
+
+2. Injection Order
+    - Always call base.Awake() or base.OnEnable() first in derived classes
+    - Register services before attempting injection
+    - Clear container when appropriate to prevent memory leaks
+
+3. Lifetime Management
+    - Use transient registration when each consumer needs its own instance
+    - Use singleton registration when sharing an instance across multiple consumers
+    - Be careful with instance-based registrations in editor code
+
 ## Common Issues
 
-- If injection isn't working in MonoBehaviour, make sure you called base.Awake()
-- If editor injection isn't working, make sure you called base.OnEnable()
-- Factory registrations create new instances each time - use singleton if you need the same instance
-- Register services early (like in a startup system) before any injection happens
-- Clear the container when changing scenes to prevent memory leaks
+1. Missing Dependencies
+    - Ensure services are registered before injection occurs
+    - Check that base.Awake() or base.OnEnable() is called in derived classes
+    - Verify service registration method matches resolution needs (singleton vs transient)
+
+2. Runtime Issues
+    - Instance-based registrations require the instance to exist
+    - Clear container when changing scenes to prevent stale references
+    - Use appropriate lifetime scope for your services
+
+3. Editor Integration
+    - Editor tools may need special handling for instance-based dependencies
+    - Consider using type-based registration for editor services when possible
+    - Be cautious with runtime dependencies in editor code
