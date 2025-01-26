@@ -10,3 +10,6 @@
 - Added tests for each scenario.
 ### Deleted
 - Removed ServiceCollection and related things.
+## [1.1.1] - 2025-01-26
+### Fix
+- Changed to only editor execution in assembly.
